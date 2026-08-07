@@ -1,6 +1,6 @@
 let scene, camera, renderer, keyMesh, controls;
 let pixelsPerMm = 3.78; 
-let appVersionCounter = 105; 
+let appVersionCounter = 106; 
 
 const keyProfiles = {
     // Anonymized Custom Profile
@@ -163,9 +163,18 @@ function createKeyShape(profile, cuts) {
         keyShape.lineTo(spacingX + 0.8, bladeHeight);
     });
 
-    keyShape.lineTo(shoulderX + profile.length, bladeHeight);
-    keyShape.lineTo(shoulderX + profile.length, 0.0);
-    keyShape.lineTo(shoulderX + profile.length, -5.0);
+    // Dynamic Blade Tip with Tapered Angle
+    // The tip extends 5mm past the final pin cut
+    const actualBladeLength = shoulderX + profile.spacings[profile.spacings.length - 1] + 5.0;
+
+    keyShape.lineTo(actualBladeLength - 2.5, bladeHeight); // Top straight edge
+    keyShape.lineTo(actualBladeLength, bladeHeight - 2.0); // Top taper down
+    keyShape.lineTo(actualBladeLength, 1.5);               // Flat nose
+    keyShape.lineTo(actualBladeLength - 2.5, 0.0);         // Bottom taper up (guides pins)
+    
+    // Return back to the shoulder along the bottom
+    keyShape.lineTo(shoulderX, 0.0); 
+    keyShape.lineTo(shoulderX, -5.0);
     keyShape.lineTo(bridgeStartX, -12.0);
     keyShape.closePath();
 
@@ -230,7 +239,9 @@ function draw2DOverlay() {
     if (!bittingStr) return;
     const cuts = bittingStr.split('').map(Number);
 
-    const totalLenMm = profile.length + profile.bowLength + 10;
+    // Dynamic Canvas Sizing based on real blade length
+    const actualBladeLength = profile.spacings[profile.spacings.length - 1] + 5.0;
+    const totalLenMm = actualBladeLength + profile.bowLength + 10;
     const totalHeightMm = profile.height + 25; 
 
     // HiDPI Device scaling calculation for crystal clear rendering
@@ -267,9 +278,14 @@ function draw2DOverlay() {
         ctx.lineTo(spacingX + 0.8, profile.height);
     });
 
-    ctx.lineTo(profile.length, profile.height);
-    ctx.lineTo(profile.length, 0.0);
-    ctx.lineTo(profile.length, -5.0);
+    // Tapered Angled Tip for 2D View
+    ctx.lineTo(actualBladeLength - 2.5, profile.height);
+    ctx.lineTo(actualBladeLength, profile.height - 2.0);
+    ctx.lineTo(actualBladeLength, 1.5);
+    ctx.lineTo(actualBladeLength - 2.5, 0.0);
+    
+    ctx.lineTo(0.0, 0.0);
+    ctx.lineTo(0.0, -5.0);
     ctx.lineTo(-profile.bowLength, -12.0);
     ctx.closePath();
 
