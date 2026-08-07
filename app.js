@@ -1,21 +1,30 @@
 let scene, camera, renderer, keyMesh;
 let pixelsPerMm = 3.78; 
-let appVersionCounter = 103; 
+let appVersionCounter = 104; 
 
 const keyProfiles = {
+    // Custom European Home Door Profile
+    homekey: { 
+        name: "Home Euro Cylinder (5-Pin)", 
+        pins: 5, 
+        length: 51.5, 
+        height: 8.4, 
+        bowLength: 21.0, 
+        spacings: [5.2, 9.4, 13.6, 17.8, 22.0], 
+        depthStep: 0.38 
+    },
+    // European Standard Profiles (DIN / Euro-cylinder specs)
+    ces:     { name: "CES Euro (5-Pin)", pins: 5, length: 48.5, height: 8.0, bowLength: 20.0, spacings: [4.5, 8.5, 12.5, 16.5, 20.5], depthStep: 0.36 },
+    bks:     { name: "BKS Euro (5-Pin)", pins: 5, length: 50.0, height: 8.3, bowLength: 21.0, spacings: [5.0, 9.2, 13.4, 17.6, 21.8], depthStep: 0.40 },
+    wilka:   { name: "Wilka Euro (5-Pin)", pins: 5, length: 49.0, height: 8.1, bowLength: 20.5, spacings: [4.8, 8.9, 13.0, 17.1, 21.2], depthStep: 0.38 },
+    dom:     { name: "DOM RS Standard (6-Pin)", pins: 6, length: 54.0, height: 8.5, bowLength: 22.0, spacings: [4.0, 8.0, 12.0, 16.0, 20.0, 24.0], depthStep: 0.35 },
     // US / Standard Profiles
     schlage: { name: "Schlage SC1 (5-Pin)", pins: 5, length: 52.0, height: 8.5, bowLength: 22.0, spacings: [5.56, 9.14, 12.72, 16.30, 19.88], depthStep: 0.38 },
     kwikset: { name: "Kwikset KW1 (5-Pin)", pins: 5, length: 53.0, height: 8.2, bowLength: 23.0, spacings: [5.84, 10.36, 14.88, 19.40, 23.92], depthStep: 0.45 },
     yale:    { name: "Yale Y1 (5-Pin)", pins: 5, length: 50.0, height: 8.0, bowLength: 22.0, spacings: [5.00, 9.00, 13.00, 17.00, 21.00], depthStep: 0.35 },
     master:  { name: "Master Lock M1 (4-Pin)", pins: 4, length: 42.0, height: 7.5, bowLength: 18.0, spacings: [6.00, 10.50, 15.00, 19.50], depthStep: 0.40 },
     corbin:  { name: "Corbin 60 (5-Pin)", pins: 5, length: 51.0, height: 8.6, bowLength: 21.0, spacings: [5.30, 9.50, 13.70, 17.90, 22.10], depthStep: 0.38 },
-    weiser:  { name: "Weiser WR5 (5-Pin)", pins: 5, length: 52.0, height: 8.2, bowLength: 22.0, spacings: [5.80, 10.30, 14.80, 19.30, 23.80], depthStep: 0.42 },
-    
-    // European Standard Profiles (DIN / Euro-cylinder specs)
-    ces:     { name: "CES Euro (5-Pin)", pins: 5, length: 48.5, height: 8.0, bowLength: 20.0, spacings: [4.5, 8.5, 12.5, 16.5, 20.5], depthStep: 0.36 },
-    bks:     { name: "BKS Euro (5-Pin)", pins: 5, length: 50.0, height: 8.3, bowLength: 21.0, spacings: [5.0, 9.2, 13.4, 17.6, 21.8], depthStep: 0.40 },
-    wilka:   { name: "Wilka Euro (5-Pin)", pins: 5, length: 49.0, height: 8.1, bowLength: 20.5, spacings: [4.8, 8.9, 13.0, 17.1, 21.2], depthStep: 0.38 },
-    dom:     { name: "DOM RS Standard (6-Pin)", pins: 6, length: 54.0, height: 8.5, bowLength: 22.0, spacings: [4.0, 8.0, 12.0, 16.0, 20.0, 24.0], depthStep: 0.35 }
+    weiser:  { name: "Weiser WR5 (5-Pin)", pins: 5, length: 52.0, height: 8.2, bowLength: 22.0, spacings: [5.80, 10.30, 14.80, 19.30, 23.80], depthStep: 0.42 }
 };
 
 init3D();
