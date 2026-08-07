@@ -117,8 +117,9 @@ function createKeyShape(profile, cuts) {
     const bladeHeight = profile.height;
     const bowLen = profile.bowLength;
 
-    keyShape.moveTo(-bowLen, -12.0);
-    keyShape.lineTo(shoulderX, -12.0);
+    keyShape.absarc(-bowLen / 2, -2.0, 12.0, 0, 2 * Math.PI, false);
+    
+    keyShape.moveTo(shoulderX, -12.0);
     keyShape.lineTo(shoulderX, 0.0);
     keyShape.lineTo(shoulderX, bladeHeight);
 
@@ -135,8 +136,6 @@ function createKeyShape(profile, cuts) {
 
     keyShape.lineTo(shoulderX + profile.length, bladeHeight);
     keyShape.lineTo(shoulderX + profile.length, 0.0);
-    keyShape.lineTo(shoulderX + profile.length, -5.0);
-    keyShape.lineTo(-bowLen, -15.0);
     keyShape.closePath();
 
     return keyShape;
@@ -188,8 +187,8 @@ function draw2DOverlay() {
     const bittingStr = document.getElementById('bitting-input').value;
     const cuts = bittingStr.split('').map(Number);
 
-    const totalLenMm = profile.length + profile.bowLength;
-    const totalHeightMm = profile.height + 15; 
+    const totalLenMm = profile.length + profile.bowLength + 10;
+    const totalHeightMm = profile.height + 25; 
 
     canvas.width = totalLenMm * pixelsPerMm;
     canvas.height = totalHeightMm * pixelsPerMm;
@@ -198,11 +197,12 @@ function draw2DOverlay() {
     ctx.save();
 
     ctx.scale(pixelsPerMm, pixelsPerMm);
-    ctx.translate(profile.bowLength, profile.height + 5);
+    ctx.translate(profile.bowLength + 5, profile.height + 12);
 
     ctx.beginPath();
-    ctx.moveTo(-profile.bowLength, -12.0);
-    ctx.lineTo(0.0, -12.0);
+    ctx.arc(-profile.bowLength / 2, -2.0, 12.0, 0, 2 * Math.PI);
+    
+    ctx.moveTo(0.0, -12.0);
     ctx.lineTo(0.0, 0.0);
     ctx.lineTo(0.0, profile.height);
 
@@ -219,11 +219,9 @@ function draw2DOverlay() {
 
     ctx.lineTo(profile.length, profile.height);
     ctx.lineTo(profile.length, 0.0);
-    ctx.lineTo(profile.length, -5.0);
-    ctx.lineTo(-profile.bowLength, -15.0);
     ctx.closePath();
 
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
     ctx.fill();
     ctx.lineWidth = 1.5 / (pixelsPerMm * 0.25);
     ctx.strokeStyle = '#38bdf8';
