@@ -51,6 +51,15 @@
                     <h3>Step 2: Key Configuration</h3>
                     <label for="key-type">Key Profile System:</label>
                     <select id="key-type">
+                        <optgroup label="Custom Profile">
+                            <option value="homekey">Home Euro Cylinder (5-Pin)</option>
+                        </optgroup>
+                        <optgroup label="European Standard Cylinder (DIN)">
+                            <option value="ces">CES Euro (5-Pin)</option>
+                            <option value="bks">BKS Euro (5-Pin)</option>
+                            <option value="wilka">Wilka Euro (5-Pin)</option>
+                            <option value="dom">DOM RS Standard (6-Pin)</option>
+                        </optgroup>
                         <optgroup label="Standard Pin-Tumbler (US)">
                             <option value="schlage">Schlage SC1 (5-Pin)</option>
                             <option value="kwikset">Kwikset KW1 (5-Pin)</option>
@@ -58,12 +67,6 @@
                             <option value="master">Master Lock M1 (4-Pin)</option>
                             <option value="corbin">Corbin 60 (5-Pin)</option>
                             <option value="weiser">Weiser WR5 (5-Pin)</option>
-                        </optgroup>
-                        <optgroup label="European Standard Cylinder (DIN)">
-                            <option value="ces">CES Euro (5-Pin)</option>
-                            <option value="bks">BKS Euro (5-Pin)</option>
-                            <option value="wilka">Wilka Euro (5-Pin)</option>
-                            <option value="dom">DOM RS Standard (6-Pin)</option>
                         </optgroup>
                     </select>
 
@@ -82,7 +85,7 @@
 
                 <!-- Live Version Info Footer -->
                 <footer class="version-footer">
-                    <span id="version-text">App Build Version: 1.0.3</span>
+                    <span id="version-text">App Build Version: 1.0.4</span>
                 </footer>
 
             </div>
