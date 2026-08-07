@@ -1,11 +1,11 @@
-let scene, camera, renderer, keyMesh;
+let scene, camera, renderer, keyMesh, controls;
 let pixelsPerMm = 3.78; 
-let appVersionCounter = 104; 
+let appVersionCounter = 105; 
 
 const keyProfiles = {
-    // Custom European Home Door Profile
-    homekey: { 
-        name: "Home Euro Cylinder (5-Pin)", 
+    // Anonymized Custom Profile
+    generic_a: { 
+        name: "Generic 5-Pin Profile A", 
         pins: 5, 
         length: 51.5, 
         height: 8.4, 
@@ -14,6 +14,9 @@ const keyProfiles = {
         depthStep: 0.38 
     },
     // European Standard Profiles (DIN / Euro-cylinder specs)
+    abus:    { name: "Abus C83 (5-Pin)", pins: 5, length: 50.0, height: 8.2, bowLength: 21.0, spacings: [4.9, 9.0, 13.1, 17.2, 21.3], depthStep: 0.38 },
+    cisa:    { name: "CISA C2000 (5-Pin)", pins: 5, length: 51.0, height: 8.5, bowLength: 22.0, spacings: [5.0, 9.2, 13.4, 17.6, 21.8], depthStep: 0.35 },
+    iseo:    { name: "ISEO F5 (5-Pin)", pins: 5, length: 50.5, height: 8.3, bowLength: 21.5, spacings: [5.1, 9.1, 13.1, 17.1, 21.1], depthStep: 0.37 },
     ces:     { name: "CES Euro (5-Pin)", pins: 5, length: 48.5, height: 8.0, bowLength: 20.0, spacings: [4.5, 8.5, 12.5, 16.5, 20.5], depthStep: 0.36 },
     bks:     { name: "BKS Euro (5-Pin)", pins: 5, length: 50.0, height: 8.3, bowLength: 21.0, spacings: [5.0, 9.2, 13.4, 17.6, 21.8], depthStep: 0.40 },
     wilka:   { name: "Wilka Euro (5-Pin)", pins: 5, length: 49.0, height: 8.1, bowLength: 20.5, spacings: [4.8, 8.9, 13.0, 17.1, 21.2], depthStep: 0.38 },
@@ -48,14 +51,20 @@ function init3D() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f172a);
 
+    // Adjusted camera to look at the flat key natively
     camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, -60, 80);
+    camera.position.set(0, -40, 60);
     camera.up.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
+
+    // Initialize OrbitControls for 360-degree viewing
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7));
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -73,6 +82,7 @@ function init3D() {
 
 function animate() {
     requestAnimationFrame(animate);
+    controls.update(); // Required for smooth damping
     renderer.render(scene, camera);
 }
 
@@ -83,6 +93,7 @@ function setupEvents() {
     const overlayElement = document.getElementById('draggable-overlay');
     const closeOverlayBtn = document.getElementById('close-overlay');
     const keyTypeSelect = document.getElementById('key-type');
+    const bittingInput = document.getElementById('bitting-input');
 
     slider.addEventListener('input', (e) => {
         const val = e.target.value;
@@ -91,7 +102,6 @@ function setupEvents() {
         calBox.style.width = `${basePixels * (val / 100)}px`;
         pixelsPerMm = 3.78 * (val / 100);
         draw2DOverlay();
-        bumpVersion();
     });
 
     overlayToggle.addEventListener('change', (e) => {
@@ -112,9 +122,8 @@ function setupEvents() {
 
     keyTypeSelect.addEventListener('change', (e) => {
         const profile = keyProfiles[e.target.value];
-        const inputElem = document.getElementById('bitting-input');
-        inputElem.maxLength = profile.pins;
-        inputElem.value = "3".repeat(profile.pins);
+        bittingInput.maxLength = profile.pins;
+        bittingInput.value = "3".repeat(profile.pins);
         document.getElementById('bitting-hint').innerText = `Enter ${profile.pins} digits for ${profile.name}`;
         generateKey();
         bumpVersion();
@@ -125,9 +134,8 @@ function setupEvents() {
         bumpVersion();
     });
 
-    document.getElementById('bitting-input').addEventListener('input', () => {
+    bittingInput.addEventListener('input', () => {
         generateKey();
-        bumpVersion();
     });
 }
 
@@ -147,7 +155,6 @@ function createKeyShape(profile, cuts) {
 
     let currentX = shoulderX + 3.0;
     cuts.forEach((cutValue, index) => {
-        if(isNaN(cutValue)) cutValue = 3;
         const spacingX = shoulderX + (profile.spacings[index] || currentX);
         const cutDepthY = bladeHeight - (cutValue * profile.depthStep + 1.2);
 
@@ -170,8 +177,14 @@ function generateKey() {
 
     const profileKey = document.getElementById('key-type').value;
     const profile = keyProfiles[profileKey];
-    const bittingStr = document.getElementById('bitting-input').value;
-    const cuts = bittingStr.split('').map(Number);
+    
+    // Sanitize input: force numeric, default to 3s if empty, slice to max pins
+    const inputElem = document.getElementById('bitting-input');
+    let bittingStr = inputElem.value.replace(/\D/g, ''); 
+    if (!bittingStr) bittingStr = "3".repeat(profile.pins);
+    
+    const cuts = bittingStr.padEnd(profile.pins, '3').split('').slice(0, profile.pins).map(Number);
+    inputElem.value = cuts.join('');
 
     const keyShape = createKeyShape(profile, cuts);
     const thickness = 2.2;
@@ -186,7 +199,8 @@ function generateKey() {
     };
 
     const geometry = new THREE.ExtrudeGeometry(keyShape, extrudeSettings);
-    geometry.center();
+    // ExtrudeGeometry generates on the XY plane by default. We do NOT center or rotate 
+    // it so the shoulder stays locked at [0,0,0] and the key lies perfectly flat for the 3D printer bed.
 
     const material = new THREE.MeshStandardMaterial({ 
         color: 0x94a3b8, 
@@ -195,8 +209,10 @@ function generateKey() {
     });
 
     keyMesh = new THREE.Mesh(geometry, material);
-    keyMesh.rotation.x = Math.PI / 2;
     scene.add(keyMesh);
+
+    // Center camera onto the newly generated key
+    controls.target.set(profile.length / 2, 0, 0);
 
     document.getElementById('download-btn').removeAttribute('disabled');
     draw2DOverlay();
@@ -208,19 +224,30 @@ function draw2DOverlay() {
     const ctx = canvas.getContext('2d');
     const profileKey = document.getElementById('key-type').value;
     const profile = keyProfiles[profileKey];
-    const bittingStr = document.getElementById('bitting-input').value;
+    
+    // Safety check for bitting input
+    const bittingStr = document.getElementById('bitting-input').value.replace(/\D/g, '');
+    if (!bittingStr) return;
     const cuts = bittingStr.split('').map(Number);
 
     const totalLenMm = profile.length + profile.bowLength + 10;
     const totalHeightMm = profile.height + 25; 
 
-    canvas.width = totalLenMm * pixelsPerMm;
-    canvas.height = totalHeightMm * pixelsPerMm;
+    // HiDPI Device scaling calculation for crystal clear rendering
+    const dpr = window.devicePixelRatio || 1;
+    const logicalWidth = totalLenMm * pixelsPerMm;
+    const logicalHeight = totalHeightMm * pixelsPerMm;
+
+    canvas.width = logicalWidth * dpr;
+    canvas.height = logicalHeight * dpr;
+    canvas.style.width = `${logicalWidth}px`;
+    canvas.style.height = `${logicalHeight}px`;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
 
-    ctx.scale(pixelsPerMm, pixelsPerMm);
+    // Scale context by DPR AND the user's calibration scale
+    ctx.scale(dpr * pixelsPerMm, dpr * pixelsPerMm);
     ctx.translate(profile.bowLength + 5, profile.height + 12);
 
     ctx.beginPath();
@@ -232,7 +259,6 @@ function draw2DOverlay() {
 
     let currentX = 3.0;
     cuts.forEach((cutValue, index) => {
-        if(isNaN(cutValue)) cutValue = 3;
         const spacingX = profile.spacings[index] || currentX;
         const cutDepthY = profile.height - (cutValue * profile.depthStep + 1.2);
 
@@ -249,7 +275,9 @@ function draw2DOverlay() {
 
     ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
     ctx.fill();
-    ctx.lineWidth = 1.5 / (pixelsPerMm * 0.25);
+    
+    // Maintain a consistent 1mm visual line width adjusted to the scale
+    ctx.lineWidth = 1.0 / pixelsPerMm; 
     ctx.strokeStyle = '#38bdf8';
     ctx.stroke();
 
@@ -257,10 +285,8 @@ function draw2DOverlay() {
     ctx.fillStyle = '#f43f5e';
     ctx.textAlign = 'center';
     cuts.forEach((cutValue, index) => {
-        if(!isNaN(cutValue)) {
-            const spacingX = profile.spacings[index] || (3.0 + index * 4);
-            ctx.fillText(cutValue, spacingX, profile.height + 4.5);
-        }
+        const spacingX = profile.spacings[index] || (3.0 + index * 4);
+        ctx.fillText(cutValue, spacingX, profile.height + 4.5);
     });
 
     ctx.restore();
@@ -294,11 +320,17 @@ function downloadSTL() {
     if (!keyMesh) return;
 
     const exporter = new THREE.STLExporter();
-    const stlString = exporter.parse(keyMesh, { binary: true });
+    const stlData = exporter.parse(keyMesh, { binary: true });
 
-    const blob = new Blob([stlString], { type: 'application/octet-stream' });
+    // Ensure correct Blob encoding for standard STLs returned as DataViews
+    const blob = new Blob([stlData.buffer || stlData], { type: 'application/vnd.ms-pki.stl' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'custom_key.stl';
+    
+    // Generate dynamic file name
+    const profileKey = document.getElementById('key-type').value;
+    const bittingStr = document.getElementById('bitting-input').value;
+    link.download = `key_${profileKey}_${bittingStr}.stl`;
+    
     link.click();
 }
