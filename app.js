@@ -1,7 +1,7 @@
 let scene, camera, renderer, keyMesh;
 let pixelsPerMm = 3.78; 
+let appVersionCounter = 100; // Starting version baseline
 
-// Expanded Universal Key Profile Database
 const keyProfiles = {
     schlage: { name: "Schlage SC1", pins: 5, length: 52.0, height: 8.5, bowLength: 22.0, spacings: [5.56, 9.14, 12.72, 16.30, 19.88], depthStep: 0.38 },
     kwikset: { name: "Kwikset KW1", pins: 5, length: 53.0, height: 8.2, bowLength: 23.0, spacings: [5.84, 10.36, 14.88, 19.40, 23.92], depthStep: 0.45 },
@@ -15,6 +15,14 @@ init3D();
 setupEvents();
 setupDraggableOverlay();
 generateKey();
+
+function bumpVersion() {
+    appVersionCounter++;
+    const major = Math.floor(appVersionCounter / 100);
+    const minor = Math.floor((appVersionCounter % 100) / 10);
+    const patch = appVersionCounter % 10;
+    document.getElementById('version-text').innerText = `App Build Version: ${major}.${minor}.${patch}`;
+}
 
 function init3D() {
     const container = document.getElementById('canvas-container');
@@ -65,6 +73,7 @@ function setupEvents() {
         calBox.style.width = `${basePixels * (val / 100)}px`;
         pixelsPerMm = 3.78 * (val / 100);
         draw2DOverlay();
+        bumpVersion();
     });
 
     overlayToggle.addEventListener('change', (e) => {
@@ -74,34 +83,40 @@ function setupEvents() {
         } else {
             overlayElement.classList.add('hidden');
         }
+        bumpVersion();
     });
 
     closeOverlayBtn.addEventListener('click', () => {
         overlayElement.classList.add('hidden');
         overlayToggle.checked = false;
+        bumpVersion();
     });
 
     keyTypeSelect.addEventListener('change', (e) => {
         const profile = keyProfiles[e.target.value];
         document.getElementById('bitting-input').maxLength = profile.pins;
         document.getElementById('bitting-input').value = "3".repeat(profile.pins);
-        document.getElementById('bitting-hint.').innerText = `Enter ${profile.pins} digits for ${profile.name}`;
+        document.getElementById('bitting-hint').innerText = `Enter ${profile.pins} digits for ${profile.name}`;
         generateKey();
     });
 
-    document.getElementById('generate-btn').addEventListener('click', generateKey);
-    document.getElementById('download-btn').addEventListener('click', downloadSTL);
-    document.getElementById('bitting-input').addEventListener('input', generateKey);
+    document.getElementById('generate-btn').addEventListener('click', () => {
+        generateKey();
+        bumpVersion();
+    });
+
+    document.getElementById('bitting-input').addEventListener('input', () => {
+        generateKey();
+        bumpVersion();
+    });
 }
 
-// Build proper 2D Key shape profile path logic (fixes the long tail/bow layout bug)
 function createKeyShape(profile, cuts) {
     const keyShape = new THREE.Shape();
     const shoulderX = 0.0;
     const bladeHeight = profile.height;
     const bowLen = profile.bowLength;
 
-    // Corrected 2D Profile coordinates: Handle/Bow on left, blade extending right past shoulder stop
     keyShape.moveTo(-bowLen, -12.0);
     keyShape.lineTo(shoulderX, -12.0);
     keyShape.lineTo(shoulderX, 0.0);
@@ -162,9 +177,9 @@ function generateKey() {
 
     document.getElementById('download-btn').removeAttribute('disabled');
     draw2DOverlay();
+    bumpVersion();
 }
 
-// Draw accurate 2D Preview Canvas with Code Numbers overlaid on the screen
 function draw2DOverlay() {
     const canvas = document.getElementById('overlay-canvas');
     const ctx = canvas.getContext('2d');
@@ -174,7 +189,7 @@ function draw2DOverlay() {
     const cuts = bittingStr.split('').map(Number);
 
     const totalLenMm = profile.length + profile.bowLength;
-    const totalHeightMm = profile.height + 15; // Including bow grip clearance
+    const totalHeightMm = profile.height + 15; 
 
     canvas.width = totalLenMm * pixelsPerMm;
     canvas.height = totalHeightMm * pixelsPerMm;
@@ -182,13 +197,9 @@ function draw2DOverlay() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
 
-    // Scale canvas context to match real mm calibration ratio
     ctx.scale(pixelsPerMm, pixelsPerMm);
-
-    // Translate coordinate space so origin is at the shoulder stop reference point
     ctx.translate(profile.bowLength, profile.height + 5);
 
-    // Draw 2D Key Body Outline
     ctx.beginPath();
     ctx.moveTo(-profile.bowLength, -12.0);
     ctx.lineTo(0.0, -12.0);
@@ -214,11 +225,10 @@ function draw2DOverlay() {
 
     ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
     ctx.fill();
-    ctx.lineWidth = 1.5 / (pixelsPerMm * 0.25); // Keeps outline crisp
+    ctx.lineWidth = 1.5 / (pixelsPerMm * 0.25);
     ctx.strokeStyle = '#38bdf8';
     ctx.stroke();
 
-    // Render Bitting Numbers directly above each cut position on the 2D view
     ctx.font = 'bold 3.5px sans-serif';
     ctx.fillStyle = '#f43f5e';
     ctx.textAlign = 'center';
@@ -232,7 +242,6 @@ function draw2DOverlay() {
     ctx.restore();
 }
 
-// Make the 2D Screen Overlay Box Drag-and-Drop enabled
 function setupDraggableOverlay() {
     const overlay = document.getElementById('draggable-overlay');
     const header = document.getElementById('overlay-header');
@@ -253,4 +262,17 @@ function setupDraggableOverlay() {
     });
 
     document.addEventListener('mouseup', () => { isDragging = false; });
+}
+
+function downloadSTL() {
+    if (!keyMesh) return;
+
+    const exporter = new THREE.STLExporter();
+    const stlString = exporter.parse(keyMesh, { binary: true });
+
+    const blob = new Blob([stlString], { type: 'application/octet-stream' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'custom_key.stl';
+    link.click();
 }
