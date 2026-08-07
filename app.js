@@ -1,6 +1,6 @@
 let scene, camera, renderer, keyMesh;
 let pixelsPerMm = 3.78; 
-let appVersionCounter = 103; // Updated baseline version
+let appVersionCounter = 103; 
 
 const keyProfiles = {
     // US / Standard Profiles
@@ -128,11 +128,9 @@ function createKeyShape(profile, cuts) {
     const bladeHeight = profile.height;
     const bowLen = profile.bowLength;
 
-    // Build bow head path context cleanly
     keyShape.absarc(-bowLen / 2, -2.0, 11.0, 0, Math.PI * 2, false);
 
     const bridgeStartX = -bowLen;
-    const bridgeWidth = bowLen;
 
     keyShape.moveTo(shoulderX, -12.0);
     keyShape.lineTo(shoulderX, 0.0);
