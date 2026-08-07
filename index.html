@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Key Generator (STL)</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js for 3D rendering and STL export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+</head>
+<body>
 
+    <div class="container">
+        <header>
+            <h1>Web Key STL Generator</h1>
+            <p>Calibrate your screen, input bitting cuts, and download your 3D-printable STL.</p>
+        </header>
+
+        <div class="main-layout">
+            <!-- Left Panel: Controls & Calibration -->
+            <div class="controls-panel">
+                
+                <!-- Step 1: Calibration -->
+                <section class="card">
+                    <h3>Step 1: Screen Calibration</h3>
+                    <p>Match the box below to a physical standard card (like a credit card, width: 85.6mm) using the slider.</p>
+                    <div id="calibration-box" class="calibration-box"><span>85.6 mm Reference</span></div>
+                    <label for="scale-slider">Adjust Scale:</label>
+                    <input type="range" id="scale-slider" min="50" max="200" value="100">
+                </section>
+
+                <!-- Step 2: Key Parameters -->
+                <section class="card">
+                    <h3>Step 2: Key Settings</h3>
+                    <label for="key-type">Key Profile:</label>
+                    <select id="key-type">
+                        <option value="schlage">Schlage SC1 (5-Pin)</option>
+                        <option value="kwikset">Kwikset KW1 (5-Pin)</option>
+                    </select>
+
+                    <label for="bitting-input">Bitting Code (Numbers):</label>
+                    <input type="text" id="bitting-input" value="35243" maxlength="5">
+                    <span class="hint">Enter numbers (typically 0-9 depending on profile)</span>
+
+                    <button id="generate-btn" class="primary-btn">Update 3D Model</button>
+                </section>
+
+                <!-- Step 3: Export -->
+                <section class="card">
+                    <h3>Step 3: Export</h3>
+                    <button id="download-btn" class="success-btn" disabled>Download STL File</button>
+                </section>
+
+            </div>
+
+            <!-- Right Panel: 3D Viewport -->
+            <div class="viewport-panel">
+                <div id="canvas-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
