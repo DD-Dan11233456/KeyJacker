@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Web Key STL Generator</title>
+    <title>Universal Web Key Generator</title>
     <link rel="stylesheet" href="style.css">
     <!-- Three.js for 3D rendering and STL export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -11,60 +11,67 @@
 </head>
 <body>
 
-    <!-- Real-Scale Screen Overlay (Toggled via Checkbox) -->
-    <div id="key-outline-overlay" class="screen-overlay hidden">
-        <div class="overlay-content">
-            <span id="overlay-label">Key Outline (1:1 Real Scale)</span>
-            <div id="outline-box"></div>
+    <!-- Draggable Real-Scale 2D Screen Overlay Preview -->
+    <div id="draggable-overlay" class="screen-overlay hidden">
+        <div id="overlay-header" class="overlay-header">
+            <span>2D Key Preview (1:1 Real Scale) - Drag Me</span>
+            <button id="close-overlay" class="close-btn">&times;</button>
+        </div>
+        <div class="overlay-body">
+            <canvas id="overlay-canvas"></canvas>
         </div>
     </div>
 
     <div class="container">
         <header>
-            <h1>Advanced Web Key Generator</h1>
-            <p>Calibrate your screen, select a profile, adjust bitting codes, and export your STL.</p>
+            <h1>Universal Web Key STL Generator</h1>
+            <p>Calibrate screen scale, select profiles, change bitting codes, and align your physical key with the live 2D preview.</p>
         </header>
 
         <div class="main-layout">
-            <!-- Left Panel: Controls & Calibration -->
+            <!-- Left Panel: Controls -->
             <div class="controls-panel">
                 
-                <!-- Step 1: Screen Calibration -->
+                <!-- Step 1: Calibration -->
                 <section class="card">
                     <h3>Step 1: Screen Calibration</h3>
-                    <p>Match the box below to a physical standard credit card (Width: 85.6mm).</p>
+                    <p>Match the box to a physical standard credit card (Width: 85.6mm).</p>
                     <div id="calibration-box" class="calibration-box"><span>85.6 mm Reference Card</span></div>
                     <label for="scale-slider">Calibration Slider:</label>
                     <input type="range" id="scale-slider" min="50" max="200" value="100">
                     
                     <div class="checkbox-group">
                         <input type="checkbox" id="overlay-toggle">
-                        <label for="overlay-toggle">Show Live Real-Scale Screen Overlay</label>
+                        <label for="overlay-toggle">Show Draggable 2D Screen Overlay</label>
                     </div>
                 </section>
 
-                <!-- Step 2: Key Parameters -->
+                <!-- Step 2: Key Configuration -->
                 <section class="card">
                     <h3>Step 2: Key Configuration</h3>
                     <label for="key-type">Key Profile System:</label>
                     <select id="key-type">
-                        <option value="schlage">Schlage SC1 (5-Pin)</option>
-                        <option value="kwikset">Kwikset KW1 (5-Pin)</option>
-                        <option value="yale">Yale Y1 (5-Pin)</option>
-                        <option value="master">Master Lock M1 (4-Pin)</option>
+                        <optgroup label="Standard Pin-Tumbler">
+                            <option value="schlage">Schlage SC1 (5-Pin)</option>
+                            <option value="kwikset">Kwikset KW1 (5-Pin)</option>
+                            <option value="yale">Yale Y1 (5-Pin)</option>
+                            <option value="master">Master Lock M1 (4-Pin)</option>
+                            <option value="corbin">Corbin 60 (5-Pin)</option>
+                            <option value="weiser">Weiser WR5 (5-Pin)</option>
+                        </optgroup>
                     </select>
 
-                    <label for="bitting-input">Bitting Code:</label>
-                    <input type="text" id="bitting-input" value="35243" maxlength="5">
-                    <span class="hint" id="bitting-hint">Enter 5 digits (typically 0-9)</span>
+                    <label for="bitting-input">Bitting Code Numbers:</label>
+                    <input type="text" id="bitting-input" value="35243" maxlength="6">
+                    <span class="hint" id="bitting-hint">Enter digits (e.g., 0-9)</span>
 
-                    <button id="generate-btn" class="primary-btn">Update 3D Model & Outline</button>
+                    <button id="generate-btn" class="primary-btn">Update Models</button>
                 </section>
 
                 <!-- Step 3: Export -->
                 <section class="card">
                     <h3>Step 3: Export</h3>
-                    <button id="download-btn" class="success-btn" disabled>Download STL File</button>
+                    <button id="download-btn" class="success-btn" disabled>Download 3D STL File</button>
                 </section>
 
             </div>
