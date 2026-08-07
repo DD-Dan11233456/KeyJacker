@@ -193,6 +193,15 @@ button {
 .success-btn:hover { background-color: #15803d; }
 .success-btn:disabled { background-color: #334155; color: #64748b; cursor: not-allowed; }
 
+.version-footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.75rem;
+    color: #64748b;
+    border-top: 1px dashed #334155;
+    margin-top: 10px;
+}
+
 .viewport-panel {
     background: #1e293b;
     border: 1px solid #334155;
